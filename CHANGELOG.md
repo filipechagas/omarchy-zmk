@@ -4,6 +4,12 @@ Each release has a `## <version>` heading matching `manifest.json` and the
 `v<version>` git tag. `scripts/release.sh` and the release workflow read the
 section under that heading as the GitHub release notes.
 
+## 0.1.1
+
+- `scripts/release.sh` checks `main` and the release tag with
+  `git ls-remote` instead of fetching, so the Omarchy marketplace security
+  baseline no longer flags it. No change to the plugin itself.
+
 ## 0.1.0
 
 First release.

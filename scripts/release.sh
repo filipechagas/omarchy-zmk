@@ -15,9 +15,11 @@ fail() { echo "release: $*" >&2; exit 1; }
 
 [[ $(git branch --show-current) == main ]] || fail "run from main"
 [[ -z $(git status --porcelain) ]] || fail "working tree is not clean"
-git fetch --quiet --tags origin
-[[ $(git rev-parse HEAD) == $(git rev-parse origin/main) ]] || fail "main is not in sync with origin/main"
-git rev-parse --quiet --verify "refs/tags/$tag" >/dev/null && fail "tag $tag already exists"
+# Compare against the remote refs directly; nothing is downloaded.
+remote_main=$(git ls-remote origin refs/heads/main | cut -f1)
+[[ $(git rev-parse HEAD) == "$remote_main" ]] || fail "main is not in sync with origin's main"
+git rev-parse --quiet --verify "refs/tags/$tag" >/dev/null && fail "tag $tag already exists locally"
+[[ -z $(git ls-remote --tags origin "refs/tags/$tag") ]] || fail "tag $tag already exists on origin"
 grep -qx "## $version" CHANGELOG.md || fail "add a '## $version' section to CHANGELOG.md first"
 
 current=$(/usr/bin/python3 -c 'import json; print(json.load(open("manifest.json"))["version"])')
