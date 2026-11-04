@@ -15,7 +15,7 @@ YAML file.
 
 ![Holding layers, then opening the panel and browsing layer tabs](docs/demo.gif)
 
-![The panel showing the nav layer](docs/screenshot.png)
+![The panel showing the nav layer](preview.png)
 
 This is an unofficial project and is not affiliated with ZMK or Omarchy.
 
@@ -52,6 +52,13 @@ plugin degrades gracefully:
 | Stock ZMK with `CONFIG_ZMK_SPLIT_BLE_CENTRAL_BATTERY_LEVEL_PROXY` | Battery Service | Second Battery Service | Unavailable |
 | With the status service | Status characteristic | Status characteristic | Available |
 
+A reference module for ZMK v0.3.0 lives in
+[`src/zmk_status_gatt.c`](https://github.com/filipechagas/zmk-config-corne/blob/1b3efd6b591db6b14af240b1a55c763a17866494/src/zmk_status_gatt.c)
+of the author's Corne config, with its `CMakeLists.txt`, `Kconfig`, and
+`zephyr/module.yml` wiring alongside. It builds only for the split central.
+It reports no caps word state, because ZMK v0.3.0 keeps that private, so the
+panel hides the caps word row.
+
 ## Requirements
 
 - Omarchy 4 with its built-in shell (developed against `omarchy 4.0.6`,
@@ -84,6 +91,28 @@ Or by hand: clone this repository to
 `~/.config/omarchy/plugins/io.github.filipechagas.zmk/`, run
 `omarchy-shell shell rescanPlugins`, then
 `omarchy plugin enable io.github.filipechagas.zmk`.
+
+Then set `keymapPath` (see [Settings](#settings)) to get layer names and
+layouts.
+
+## Update
+
+```bash
+omarchy plugin update io.github.filipechagas.zmk
+```
+
+Releases and their notes are listed in [CHANGELOG.md](CHANGELOG.md).
+
+## Remove
+
+```bash
+omarchy plugin remove io.github.filipechagas.zmk
+```
+
+This disables the widget and deletes the plugin folder. The plugin writes no
+files anywhere else, so nothing is left behind. The firmware module on the
+keyboard keeps working without the plugin; remove it from your ZMK config if
+you no longer want it.
 
 ## Settings
 
