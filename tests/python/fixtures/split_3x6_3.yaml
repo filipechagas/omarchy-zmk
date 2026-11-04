@@ -1,0 +1,92 @@
+layout: {zmk_keyboard: corne}
+layers:
+  default:
+  - {t: '$$mdi:keyboard-tab$$', s: '`'}
+  - Q
+  - W
+  - E
+  - R
+  - T
+  - Y
+  - U
+  - I
+  - O
+  - P
+  - DEL
+  - {t: '$$mdi:keyboard-esc$$', h: Ctrl}
+  - {t: A, h: Ctrl}
+  - S
+  - D
+  - F
+  - G
+  - H
+  - J
+  - K
+  - L
+  - ';'
+  - ''''
+  - Shift
+  - Z
+  - X
+  - C
+  - V
+  - B
+  - N
+  - M
+  - ','
+  - '.'
+  - /
+  - Shift
+  - {t: Esc, h: '$$mdi:arrow-all$$'}
+  - Tab
+  - Space
+  - Ret
+  - {t: Bksp, h: Sym}
+  - '$$unknown:thing$$'
+  nav:
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
+  - {type: held}
+  - '$$mdi:arrow-left$$'
+  - '$$mdi:arrow-left$$'
+  - '$$mdi:arrow-left$$'
+  - '$$mdi:arrow-left$$'
+  - '$$mdi:arrow-left$$'
+  - '$$mdi:arrow-left$$'
+  - '$$mdi:arrow-left$$'
+  - '$$mdi:arrow-left$$'
+  - '$$mdi:arrow-left$$'
+  - '$$mdi:arrow-left$$'
+  - '$$mdi:arrow-left$$'
+  - '$$mdi:arrow-left$$'
+  - '$$mdi:arrow-left$$'
+  - '$$mdi:arrow-left$$'
+  - '$$mdi:arrow-left$$'
+  - '$$mdi:arrow-left$$'
+  - '$$mdi:arrow-left$$'
+  - '$$mdi:arrow-left$$'
+  - '$$mdi:arrow-left$$'
+  - '$$mdi:arrow-left$$'
+  - '$$mdi:arrow-left$$'
+  - '$$mdi:arrow-left$$'
+  - '$$mdi:arrow-left$$'
+combos:
+- p: [4, 3]
+  k: (
+  l: [default]

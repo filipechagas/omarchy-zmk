@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "id": "io.github.filipechagas.zmk",
+  "name": "ZMK Keyboard",
+  "version": "0.1.0",
+  "author": "Filipe Chagas",
+  "license": "MIT",
+  "description": "Battery, layer, and connection status for ZMK split keyboards over Bluetooth.",
+  "kinds": [
+    "service",
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "service": "Service.qml",
+    "barWidget": "Panel.qml"
+  },
+  "barWidget": {
+    "displayName": "ZMK Keyboard",
+    "description": "Per-half battery, active layer, BLE profile, and keymap layers for a ZMK split keyboard.",
+    "category": "Status",
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {
+      "deviceName": "",
+      "keymapPath": ""
+    },
+    "schema": [
+      {
+        "key": "keymapPath",
+        "type": "path",
+        "label": "Keymap YAML",
+        "defaultValue": "",
+        "description": "keymap-drawer YAML (keymap parse output). Supplies layer names and key layouts."
+      },
+      {
+        "key": "deviceName",
+        "type": "string",
+        "label": "Device name",
+        "defaultValue": "",
+        "description": "Optional. Bluetooth name of the keyboard, used when its firmware has no ZMK status service."
+      }
+    ]
+  }
+}

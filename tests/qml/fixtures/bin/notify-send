@@ -1,0 +1,3 @@
+#!/bin/sh
+# Test double: records its arguments instead of showing a notification.
+printf '%s\n' "$*" >> "${ZMK_TEST_NOTIFY_LOG:?}"

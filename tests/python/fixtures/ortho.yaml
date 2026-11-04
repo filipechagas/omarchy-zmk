@@ -1,0 +1,7 @@
+layout:
+  ortho_layout: {split: false, rows: 2, columns: 3, thumbs: 0}
+layers:
+  base:
+  - [A, B, C]
+  - [D, E, F]
+  fn: [1, 2, 3, 4, 5, true]
