@@ -110,10 +110,33 @@ Ui.Panel {
         font.bold: true
     }
 
-    Component {
-        id: barContent
+    Ui.WidgetButton {
+        id: barButton
+        anchors.fill: parent
+        bar: root.bar
+        dimmed: !root.view.connected
+        labelVisible: false
+        hasVisualContent: true
+        fixedWidth: root.verticalBar ? -1 : root.barSlotSize
+        fixedHeight: root.verticalBar ? root.barSlotSize : -1
+        tooltipText: root.view.tooltip || "ZMK Keyboard"
+        onPressed: function (button) {
+            if (button === Qt.LeftButton)
+                root.toggle();
+        }
 
+        Accessible.role: Accessible.Button
+        Accessible.name: root.view.accessibleName || "ZMK Keyboard"
+        Accessible.description: root.opened ? "Closes keyboard status" : "Opens keyboard status"
+        Accessible.onPressAction: root.toggle()
+
+        // Children of the button, not an iconComponent: from Omarchy 4.5,
+        // BarIconButton scales an iconComponent down to a single icon's size,
+        // which shrinks this row of text to a few pixels.
         Item {
+            anchors.fill: parent
+            scale: barButton.pressScale
+
             Row {
                 visible: !root.verticalBar
                 anchors.centerIn: parent
@@ -210,26 +233,6 @@ Ui.Panel {
                 }
             }
         }
-    }
-
-    Ui.BarIconButton {
-        id: barButton
-        anchors.fill: parent
-        bar: root.bar
-        dimmed: !root.view.connected
-        slotSize: root.barSlotSize
-        opticalSize: root.barSlotSize
-        iconComponent: barContent
-        tooltipText: root.view.tooltip || "ZMK Keyboard"
-        onPressed: function (button) {
-            if (button === Qt.LeftButton)
-                root.toggle();
-        }
-
-        Accessible.role: Accessible.Button
-        Accessible.name: root.view.accessibleName || "ZMK Keyboard"
-        Accessible.description: root.opened ? "Closes keyboard status" : "Opens keyboard status"
-        Accessible.onPressAction: root.toggle()
     }
 
     Ui.KeyboardPanel {

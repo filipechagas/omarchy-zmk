@@ -4,6 +4,12 @@ Each release has a `## <version>` heading matching `manifest.json` and the
 `v<version>` git tag. `scripts/release.sh` and the release workflow read the
 section under that heading as the GitHub release notes.
 
+## 0.1.2
+
+- Fix the bar widget rendering a few pixels tall on Omarchy 4.5, which
+  scales a bar button's custom icon down to a single icon's size. The
+  widget now draws its battery and layer text as the button's own content.
+
 ## 0.1.1
 
 - `scripts/release.sh` checks `main` and the release tag with

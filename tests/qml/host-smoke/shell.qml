@@ -22,6 +22,27 @@ ShellRoot {
             failures.push(message);
     }
 
+    function findText(item, text) {
+        if (!item)
+            return null;
+        if (item instanceof Text && item.text === text)
+            return item;
+        for (let i = 0; i < item.children.length; i++) {
+            const found = findText(item.children[i], text);
+            if (found)
+                return found;
+        }
+        return null;
+    }
+
+    // Height the label covers in panel coordinates. Equal to its own height
+    // unless the host scaled the bar content.
+    function renderedHeight(panel, label) {
+        var top = label.mapToItem(panel, 0, 0);
+        var bottom = label.mapToItem(panel, 0, label.height);
+        return bottom.y - top.y;
+    }
+
     function load(name) {
         var component = Qt.createComponent("file://" + pluginRoot + "/" + name, Component.PreferSynchronous);
         check(component.status === Component.Ready, name + ": " + component.errorString());
@@ -67,6 +88,12 @@ ShellRoot {
             check(horizontalPanel.view.right.text === "R 71%", "panel right text: " + horizontalPanel.view.right.text);
             check(horizontalPanel.barText.indexOf("NAV") !== -1, "bar text lacks layer: " + horizontalPanel.barText);
             check(horizontalPanel.implicitWidth > horizontalPanel.iconSlot, "horizontal widget did not grow for text: " + horizontalPanel.implicitWidth);
+            // Omarchy 4.5 shrinks a BarIconButton iconComponent to icon size;
+            // the bar text must render at its own font size.
+            const leftLabel = findText(horizontalPanel, "L 93%");
+            check(leftLabel !== null, "bar text item for the left half not found");
+            if (leftLabel)
+                check(Math.abs(renderedHeight(horizontalPanel, leftLabel) - leftLabel.height) < 0.5, "bar text is scaled: rendered " + renderedHeight(horizontalPanel, leftLabel) + "px for a " + leftLabel.height + "px label");
             check(verticalPanel.verticalBar, "vertical bar not detected");
             check(verticalPanel.implicitHeight > verticalPanel.iconSlot, "vertical widget did not grow: " + verticalPanel.implicitHeight);
         } else if (step === 2) {
