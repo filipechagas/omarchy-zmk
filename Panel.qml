@@ -34,7 +34,6 @@ Ui.Panel {
     readonly property int bodySmallFontSize: Commons.Style.fontToken("body-small", Commons.Style.fontPx(0.917))
     readonly property int bodyFontSize: Commons.Style.fontToken("body", Commons.Style.fontPx(1))
     readonly property int displayFontSize: Commons.Style.fontToken("display", Commons.Style.fontPx(2))
-    readonly property string keyboardGlyph: "\u{f030c}"
 
     visible: true
     implicitWidth: barButton.implicitWidth
@@ -109,25 +108,34 @@ Ui.Panel {
         PathRectangle { x: half.originX + (half.thumbOnLeft ? 1.1 : 4.2); y: 14.25; width: 5.4; height: 1.5 }
     }
 
-    // Nerd Fonts has no split-keyboard glyph, so the bar icon is drawn. The
-    // bar scales it to its icon size and centers its painted bounds.
+    // Nerd Fonts has no split-keyboard glyph, so the icon is drawn on a 24px
+    // grid. The bar scales it to its icon size; the panel header scales it to
+    // the display font size, where a glyph would have been.
+    component SplitKeyboardIcon: Shape {
+        id: icon
+
+        property color ink: "white"
+
+        width: 24
+        height: 24
+        preferredRendererType: Shape.CurveRenderer
+
+        KeyboardHalf {
+            originX: 0.25
+            fillColor: icon.ink
+        }
+        KeyboardHalf {
+            originX: 13
+            thumbOnLeft: true
+            fillColor: icon.ink
+        }
+    }
+
     Component {
         id: splitKeyboardIcon
 
-        Shape {
-            width: 24
-            height: 24
-            preferredRendererType: Shape.CurveRenderer
-
-            KeyboardHalf {
-                originX: 0.25
-                fillColor: root.barForeground
-            }
-            KeyboardHalf {
-                originX: 13
-                thumbOnLeft: true
-                fillColor: root.barForeground
-            }
+        SplitKeyboardIcon {
+            ink: root.barForeground
         }
     }
 
@@ -195,12 +203,16 @@ Ui.Panel {
                         foreground: root.barForeground
                         fontFamily: root.fontFamily
                         iconComponent: Component {
-                            Text {
-                                text: root.keyboardGlyph
-                                color: root.barForeground
-                                font.family: root.fontFamily
-                                font.pixelSize: root.displayFontSize
+                            Item {
+                                implicitWidth: root.displayFontSize
+                                implicitHeight: root.displayFontSize
                                 Accessible.ignored: true
+
+                                SplitKeyboardIcon {
+                                    ink: root.barForeground
+                                    scale: root.displayFontSize / width
+                                    transformOrigin: Item.TopLeft
+                                }
                             }
                         }
                     }

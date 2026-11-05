@@ -4,6 +4,11 @@ Each release has a `## <version>` heading matching `manifest.json` and the
 `v<version>` git tag. `scripts/release.sh` and the release workflow read the
 section under that heading as the GitHub release notes.
 
+## 0.2.1
+
+- The panel header uses the same split-keyboard icon as the bar instead of
+  the generic keyboard glyph. Preview screenshot updated to match.
+
 ## 0.2.0
 
 - The bar widget is now a single split-keyboard icon, dimmed while the
