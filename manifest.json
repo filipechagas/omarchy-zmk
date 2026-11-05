@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "io.github.filipechagas.zmk",
   "name": "ZMK Keyboard",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": "Filipe Chagas",
   "license": "MIT",
   "description": "Battery, layer, and connection status for ZMK split keyboards over Bluetooth.",
