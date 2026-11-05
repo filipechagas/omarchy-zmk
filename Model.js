@@ -122,13 +122,6 @@ function layerName(keymap, index) {
     return "Layer " + index;
 }
 
-function layerBadge(keymap, index) {
-    var name = layerName(keymap, index);
-    if (name.indexOf("Layer ") === 0)
-        return "L" + index;
-    return name.toUpperCase();
-}
-
 // Tabs for the panel: every layer in the keymap, or one per active layer bit
 // up to the highest active layer when no keymap is configured.
 function layerTabs(keymap, status) {
@@ -149,8 +142,9 @@ function layerTabs(keymap, status) {
     return tabs;
 }
 
-// Tab selected when the panel opens: the highest active layer if it has a tab.
-function initialLayer(status, tabCount) {
+// Tab showing the keyboard's highest active layer, or 0 when it has no tab.
+// The panel selects it on open and whenever the active layer changes.
+function activeLayerTab(status, tabCount) {
     var layer = status && typeof status.layer === "number" ? status.layer : 0;
     return layer >= 0 && layer < tabCount ? layer : 0;
 }
@@ -288,14 +282,13 @@ function statusNote(state) {
 
 // -- bar --------------------------------------------------------------------
 
+// The bar draws only an icon. Battery and layer change while typing, so they
+// stay out of the bar and its tooltip and live in the panel; the accessible
+// name still carries them, since a screen reader asks for it on demand.
 function barView(state, keymap) {
     var view = {
         present: !!(state && state.device),
         connected: connected(state),
-        left: { text: "", tone: "muted" },
-        right: { text: "", tone: "muted" },
-        layer: { text: "", visible: false },
-        compact: { left: "", right: "", layer: "" },
         tooltip: "",
         accessibleName: ""
     };
@@ -308,15 +301,6 @@ function barView(state, keymap) {
     var left = state.left || {};
     var right = state.right || {};
     var status = state.status;
-    view.left = { text: "L " + percentText(left.percent), tone: batteryTone(left.percent, true) };
-    view.right = { text: "R " + percentText(right.percent), tone: batteryTone(right.percent, right.connected) };
-    view.compact.left = validPercent(left.percent) ? String(Math.round(left.percent)) : "—";
-    view.compact.right = validPercent(right.percent) ? String(Math.round(right.percent)) : "—";
-    if (status && typeof status.layer === "number" && status.layer > 0) {
-        var badge = layerBadge(keymap, status.layer);
-        view.layer = { text: badge, visible: true };
-        view.compact.layer = badge.length > 3 ? badge.substring(0, 3) : badge;
-    }
     var parts = [name, "Left " + percentText(left.percent)];
     if (right.connected === false)
         parts.push("Right disconnected");
@@ -324,8 +308,8 @@ function barView(state, keymap) {
         parts.push("Right " + percentText(right.percent));
     if (status)
         parts.push("Layer " + layerName(keymap, status.layer));
-    view.tooltip = parts.join(" · ");
-    view.accessibleName = view.tooltip;
+    view.tooltip = name;
+    view.accessibleName = parts.join(" · ");
     return view;
 }
 

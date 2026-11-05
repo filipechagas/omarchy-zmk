@@ -1,31 +1,21 @@
 # ZMK Keyboard for Omarchy
 
 An Omarchy shell bar widget for a [ZMK](https://zmk.dev) split keyboard
-connected over Bluetooth. The bar shows both halves' battery and the active
-layer at a glance:
-
-```
-󰌌 L 93%  R 71%  NAV
-```
-
-Click it for a panel with battery trends, the active BLE profile, the
+connected over Bluetooth. The bar shows a split-keyboard icon. Click it for a
+panel with each half's battery and trend, the active BLE profile, the
 right-half link, caps word, the firmware revision, and every layer of your
 keymap drawn from a [keymap-drawer](https://github.com/caksoylar/keymap-drawer)
-YAML file.
+YAML file, following the layer you are on.
 
-![Holding layers, then opening the panel and browsing layer tabs](docs/demo.gif)
-
-![The panel showing the nav layer](preview.png)
+![The bar icon and the open panel](preview.png)
 
 This is an unofficial project and is not affiliated with ZMK or Omarchy.
 
 ## Features
 
-- **Bar widget.** Shows `L <left>% R <right>% <LAYER>`. The layer name is hidden
-  on layer 0 and drawn in the theme accent on any other layer. A half at or
-  below 20% turns the urgent color, and `R` greys out while the right half is
-  disconnected. On vertical bars the widget stacks the icon, both percentages,
-  and a three-letter layer badge.
+- **Bar widget.** A split-keyboard icon, dimmed while the keyboard is not
+  connected. Battery and layer stay out of the bar, where they would change
+  while you type; its tooltip names the keyboard.
 - **Panel.**
   - Battery per half with a trend (`Draining 1.2%/h · ~3d 2h left`) and a
     small sparkline from in-memory history. The left half is seeded from
@@ -33,8 +23,9 @@ This is an unofficial project and is not affiliated with ZMK or Omarchy.
   - Active BLE profile, right-half connection state, caps word (when the
     firmware reports support), and firmware revision.
   - One tab per keymap layer, each rendering that layer's keys. The active
-    layer's tab is marked `●` and selected when the panel opens. ←/→ switch
-    tabs.
+    layer's tab is marked `●` and selected, and the selection follows the
+    keyboard as you switch layers. ←/→ browse the other tabs until the next
+    switch.
 - **Notifications** (`notify-send`). One when either half reaches 20%, 10%,
   or 5%, once per crossing per half; a threshold re-arms after the half
   climbs 3 points above it. One when the right half stays disconnected for

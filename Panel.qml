@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls as Controls
+import QtQuick.Shapes
 import qs.Commons as Commons
 import qs.Ui as Ui
 import "Model.js" as Model
@@ -24,22 +25,16 @@ Ui.Panel {
     readonly property var view: Model.barView(kbd, keymap)
     readonly property var status: kbd.status
     readonly property var layerTabs: Model.layerTabs(keymap, status)
+    readonly property int activeLayerTab: Model.activeLayerTab(status, layerTabs.length)
     readonly property double nowMs: hasService ? service.clockMs : Date.now()
 
-    readonly property bool verticalBar: dynamicProperty(bar, "vertical") === true
     readonly property var barFontFamily: dynamicProperty(bar, "fontFamily")
     readonly property string fontFamily: typeof barFontFamily === "string" ? barFontFamily : Commons.Style.fontFamily
     readonly property int captionFontSize: Commons.Style.fontToken("caption", Commons.Style.fontPx(0.833))
     readonly property int bodySmallFontSize: Commons.Style.fontToken("body-small", Commons.Style.fontPx(0.917))
     readonly property int bodyFontSize: Commons.Style.fontToken("body", Commons.Style.fontPx(1))
     readonly property int displayFontSize: Commons.Style.fontToken("display", Commons.Style.fontPx(2))
-    readonly property int iconFontSize: Commons.Style.barToken("icon-font", 13)
-    readonly property real iconSlot: Commons.Style.barToken("icon-slot", 27)
     readonly property string keyboardGlyph: "\u{f030c}"
-
-    readonly property string barText: view.connected ? view.left.text + "  " + view.right.text + (view.layer.visible ? "  " + view.layer.text : "") : ""
-    readonly property int verticalLines: view.connected ? (view.layer.visible ? 3 : 2) : 0
-    readonly property real barSlotSize: verticalBar ? Math.max(iconSlot, iconMetrics.height + verticalLines * captionMetrics.height + Commons.Style.space(6)) : iconSlot + (barText === "" ? 0 : barTextMeasure.advanceWidth + Commons.Style.space(14))
 
     visible: true
     implicitWidth: barButton.implicitWidth
@@ -79,8 +74,12 @@ Ui.Panel {
         if (!opened)
             return;
         bodyFlickable.contentY = 0;
-        viewedLayer = Model.initialLayer(status, layerTabs.length);
+        viewedLayer = activeLayerTab;
     }
+
+    // Follow the keyboard: switching layers shows that layer's keys. The
+    // arrow keys and tabs still browse other layers until the next switch.
+    onActiveLayerTabChanged: viewedLayer = activeLayerTab
 
     Timer {
         interval: 2000
@@ -89,36 +88,55 @@ Ui.Panel {
         onTriggered: root.serviceWaitExpired = true
     }
 
-    TextMetrics {
-        id: barTextMeasure
-        font.family: root.fontFamily
-        font.pixelSize: root.bodySmallFontSize
-        font.bold: true
-        text: root.barText
+    // One half of the split-keyboard bar icon, on a 24px grid: a solid slab
+    // with two rows of three key holes and a thumb key toward the gap.
+    component KeyboardHalf: ShapePath {
+        id: half
+
+        property real originX: 0
+        property bool thumbOnLeft: false
+
+        strokeWidth: -1
+        fillRule: ShapePath.OddEvenFill
+
+        PathRectangle { x: half.originX; y: 7; width: 10.75; height: 10; radius: 1.5 }
+        PathRectangle { x: half.originX + 1.1; y: 8.25; width: 2.3; height: 2.1 }
+        PathRectangle { x: half.originX + 4.2; y: 8.25; width: 2.3; height: 2.1 }
+        PathRectangle { x: half.originX + 7.3; y: 8.25; width: 2.3; height: 2.1 }
+        PathRectangle { x: half.originX + 1.1; y: 11.25; width: 2.3; height: 2.1 }
+        PathRectangle { x: half.originX + 4.2; y: 11.25; width: 2.3; height: 2.1 }
+        PathRectangle { x: half.originX + 7.3; y: 11.25; width: 2.3; height: 2.1 }
+        PathRectangle { x: half.originX + (half.thumbOnLeft ? 1.1 : 4.2); y: 14.25; width: 5.4; height: 1.5 }
     }
 
-    FontMetrics {
-        id: iconMetrics
-        font.family: root.fontFamily
-        font.pixelSize: root.iconFontSize
+    // Nerd Fonts has no split-keyboard glyph, so the bar icon is drawn. The
+    // bar scales it to its icon size and centers its painted bounds.
+    Component {
+        id: splitKeyboardIcon
+
+        Shape {
+            width: 24
+            height: 24
+            preferredRendererType: Shape.CurveRenderer
+
+            KeyboardHalf {
+                originX: 0.25
+                fillColor: root.barForeground
+            }
+            KeyboardHalf {
+                originX: 13
+                thumbOnLeft: true
+                fillColor: root.barForeground
+            }
+        }
     }
 
-    FontMetrics {
-        id: captionMetrics
-        font.family: root.fontFamily
-        font.pixelSize: root.captionFontSize
-        font.bold: true
-    }
-
-    Ui.WidgetButton {
+    Ui.BarIconButton {
         id: barButton
         anchors.fill: parent
         bar: root.bar
         dimmed: !root.view.connected
-        labelVisible: false
-        hasVisualContent: true
-        fixedWidth: root.verticalBar ? -1 : root.barSlotSize
-        fixedHeight: root.verticalBar ? root.barSlotSize : -1
+        iconComponent: splitKeyboardIcon
         tooltipText: root.view.tooltip || "ZMK Keyboard"
         onPressed: function (button) {
             if (button === Qt.LeftButton)
@@ -129,110 +147,6 @@ Ui.Panel {
         Accessible.name: root.view.accessibleName || "ZMK Keyboard"
         Accessible.description: root.opened ? "Closes keyboard status" : "Opens keyboard status"
         Accessible.onPressAction: root.toggle()
-
-        // Children of the button, not an iconComponent: from Omarchy 4.5,
-        // BarIconButton scales an iconComponent down to a single icon's size,
-        // which shrinks this row of text to a few pixels.
-        Item {
-            anchors.fill: parent
-            scale: barButton.pressScale
-
-            Row {
-                visible: !root.verticalBar
-                anchors.centerIn: parent
-                spacing: Commons.Style.space(5)
-
-                Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: root.keyboardGlyph
-                    color: root.barForeground
-                    font.family: root.fontFamily
-                    font.pixelSize: root.iconFontSize
-                    Accessible.ignored: true
-                }
-
-                Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    visible: root.view.connected
-                    text: root.view.left.text
-                    color: root.toneColor(root.view.left.tone === "muted" ? "normal" : root.view.left.tone)
-                    font.family: root.fontFamily
-                    font.pixelSize: root.bodySmallFontSize
-                    font.bold: true
-                    Accessible.ignored: true
-                }
-
-                Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    visible: root.view.connected
-                    text: root.view.right.text
-                    color: root.toneColor(root.view.right.tone)
-                    font.family: root.fontFamily
-                    font.pixelSize: root.bodySmallFontSize
-                    font.bold: true
-                    Accessible.ignored: true
-                }
-
-                Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    visible: root.view.connected && root.view.layer.visible
-                    text: root.view.layer.text
-                    color: root.toneColor("accent")
-                    font.family: root.fontFamily
-                    font.pixelSize: root.bodySmallFontSize
-                    font.bold: true
-                    Accessible.ignored: true
-                }
-            }
-
-            Column {
-                visible: root.verticalBar
-                anchors.centerIn: parent
-                spacing: 0
-
-                Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: root.keyboardGlyph
-                    color: root.barForeground
-                    font.family: root.fontFamily
-                    font.pixelSize: root.iconFontSize
-                    Accessible.ignored: true
-                }
-
-                Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    visible: root.view.connected
-                    text: root.view.compact.left
-                    color: root.toneColor(root.view.left.tone === "muted" ? "normal" : root.view.left.tone)
-                    font.family: root.fontFamily
-                    font.pixelSize: root.captionFontSize
-                    font.bold: true
-                    Accessible.ignored: true
-                }
-
-                Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    visible: root.view.connected
-                    text: root.view.compact.right
-                    color: root.toneColor(root.view.right.tone)
-                    font.family: root.fontFamily
-                    font.pixelSize: root.captionFontSize
-                    font.bold: true
-                    Accessible.ignored: true
-                }
-
-                Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    visible: root.view.connected && root.view.layer.visible
-                    text: root.view.compact.layer
-                    color: root.toneColor("accent")
-                    font.family: root.fontFamily
-                    font.pixelSize: root.captionFontSize
-                    font.bold: true
-                    Accessible.ignored: true
-                }
-            }
-        }
     }
 
     Ui.KeyboardPanel {

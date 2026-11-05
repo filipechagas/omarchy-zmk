@@ -82,9 +82,7 @@ TestCase {
     function test_layerNames() {
         var keymap = keymapFixture();
         compare(Model.layerName(keymap, 3), "nav");
-        compare(Model.layerBadge(keymap, 3), "NAV");
         compare(Model.layerName(Model.emptyKeymap(), 3), "Layer 3");
-        compare(Model.layerBadge(Model.emptyKeymap(), 3), "L3");
         compare(Model.layerName(keymap, 9), "Layer 9");
     }
 
@@ -101,42 +99,25 @@ TestCase {
         compare(Model.layerTabs(Model.emptyKeymap(), null).length, 0);
     }
 
-    function test_barView_base_layer_hides_layer() {
-        var view = Model.barView(connectedState(), keymapFixture());
-        compare(view.left.text, "L 93%");
-        compare(view.right.text, "R 71%");
-        compare(view.layer.visible, false);
-        compare(view.left.tone, "normal");
-        compare(view.tooltip, "Corne · Left 93% · Right 71% · Layer default");
-    }
-
-    function test_barView_named_layer() {
+    // The bar shows only an icon; battery and layer stay in the panel, so
+    // the tooltip names the keyboard and nothing that changes while typing.
+    function test_barView_connected() {
         var state = connectedState();
         state.status.layer = 3;
         var view = Model.barView(state, keymapFixture());
-        compare(view.layer.visible, true);
-        compare(view.layer.text, "NAV");
-        compare(view.compact.layer, "NAV");
-        compare(Model.barView(state, Model.emptyKeymap()).layer.text, "L3");
+        compare(view.connected, true);
+        compare(view.tooltip, "Corne");
+        compare(view.accessibleName, "Corne · Left 93% · Right 71% · Layer nav");
+        compare(view.left, undefined);
+        compare(view.layer, undefined);
     }
 
-    function test_barView_low_and_disconnected_right() {
+    function test_barView_disconnected_right() {
         var state = connectedState();
-        state.left.percent = 20;
         state.right = { percent: 60, source: "status", connected: false, disconnectedSince: 100, trend: null };
         var view = Model.barView(state, keymapFixture());
-        compare(view.left.tone, "low");
-        compare(view.right.tone, "muted");
-        verify(view.tooltip.indexOf("Right disconnected") !== -1);
-    }
-
-    function test_barView_old_firmware() {
-        var view = Model.barView(oldFirmwareState(), keymapFixture());
-        compare(view.left.text, "L 93%");
-        compare(view.right.text, "R —");
-        compare(view.right.tone, "muted");
-        compare(view.layer.visible, false);
-        compare(view.compact.right, "—");
+        compare(view.tooltip, "Corne");
+        verify(view.accessibleName.indexOf("Right disconnected") !== -1);
     }
 
     function test_barView_disconnected() {
@@ -144,7 +125,6 @@ TestCase {
         state.device.connected = false;
         var view = Model.barView(state, keymapFixture());
         compare(view.connected, false);
-        compare(view.left.text, "");
         compare(view.tooltip, "Corne — Disconnected");
         compare(Model.barView(Model.emptyState(), null).tooltip, "No Bluetooth adapter");
     }
@@ -187,11 +167,11 @@ TestCase {
         compare(Model.notificationFor({ kind: "nope" }), null);
     }
 
-    function test_initialLayer() {
-        compare(Model.initialLayer({ layer: 3 }, 6), 3);
-        compare(Model.initialLayer({ layer: 7 }, 6), 0);
-        compare(Model.initialLayer(null, 6), 0);
-        compare(Model.initialLayer({ layer: 2 }, 0), 0);
+    function test_activeLayerTab() {
+        compare(Model.activeLayerTab({ layer: 3 }, 6), 3);
+        compare(Model.activeLayerTab({ layer: 7 }, 6), 0);
+        compare(Model.activeLayerTab(null, 6), 0);
+        compare(Model.activeLayerTab({ layer: 2 }, 0), 0);
     }
 
     function test_keyHelpers() {

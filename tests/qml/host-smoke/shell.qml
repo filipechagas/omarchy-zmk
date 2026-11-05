@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import qs.Ui as Ui
 
 // Host smoke test: loads the real Service.qml and Panel.qml inside Quickshell
 // with a fake bridge (fixtures/fake-plugin) and fake bars, drives the scripted
@@ -20,27 +21,6 @@ ShellRoot {
     function check(condition, message) {
         if (!condition)
             failures.push(message);
-    }
-
-    function findText(item, text) {
-        if (!item)
-            return null;
-        if (item instanceof Text && item.text === text)
-            return item;
-        for (let i = 0; i < item.children.length; i++) {
-            const found = findText(item.children[i], text);
-            if (found)
-                return found;
-        }
-        return null;
-    }
-
-    // Height the label covers in panel coordinates. Equal to its own height
-    // unless the host scaled the bar content.
-    function renderedHeight(panel, label) {
-        var top = label.mapToItem(panel, 0, 0);
-        var bottom = label.mapToItem(panel, 0, label.height);
-        return bottom.y - top.y;
     }
 
     function load(name) {
@@ -81,21 +61,17 @@ ShellRoot {
             check(service.bridgePhase === "running", "bridge did not reach running: " + service.bridgePhase);
             check(service.keyboardState.device !== null, "no state from bridge");
             check(service.keymap.ok === true, "keymap message not applied");
-            check(service.view.left.text === "L 93%", "service bar text: " + service.view.left.text);
-            check(service.view.layer.text === "NAV", "layer badge: " + service.view.layer.text);
+            // Battery and layer stay out of the bar and its tooltip.
+            check(service.view.tooltip === "Corne", "bar tooltip: " + service.view.tooltip);
+            check(service.view.accessibleName.indexOf("Left 93%") !== -1, "accessible name lacks battery: " + service.view.accessibleName);
             check(service.lastBridgeLog === "Ignored bridge line (bad_json)", "bad line not ignored: " + service.lastBridgeLog);
             check(horizontalPanel.hasService, "panel did not find its service via bar.shell.serviceFor");
-            check(horizontalPanel.view.right.text === "R 71%", "panel right text: " + horizontalPanel.view.right.text);
-            check(horizontalPanel.barText.indexOf("NAV") !== -1, "bar text lacks layer: " + horizontalPanel.barText);
-            check(horizontalPanel.implicitWidth > horizontalPanel.iconSlot, "horizontal widget did not grow for text: " + horizontalPanel.implicitWidth);
-            // Omarchy 4.5 shrinks a BarIconButton iconComponent to icon size;
-            // the bar text must render at its own font size.
-            const leftLabel = findText(horizontalPanel, "L 93%");
-            check(leftLabel !== null, "bar text item for the left half not found");
-            if (leftLabel)
-                check(Math.abs(renderedHeight(horizontalPanel, leftLabel) - leftLabel.height) < 0.5, "bar text is scaled: rendered " + renderedHeight(horizontalPanel, leftLabel) + "px for a " + leftLabel.height + "px label");
-            check(verticalPanel.verticalBar, "vertical bar not detected");
-            check(verticalPanel.implicitHeight > verticalPanel.iconSlot, "vertical widget did not grow: " + verticalPanel.implicitHeight);
+            check(horizontalPanel.view.accessibleName.indexOf("Right 71%") !== -1, "panel accessible name: " + horizontalPanel.view.accessibleName);
+            // The viewed layer tab follows the keyboard's active layer.
+            check(horizontalPanel.viewedLayer === 1, "viewed layer does not follow the active layer: " + horizontalPanel.viewedLayer);
+            // Icon only: the widget takes the same slot as a stock bar icon.
+            check(horizontalPanel.implicitWidth === stockIcon.implicitWidth, "horizontal widget is not one icon slot: " + horizontalPanel.implicitWidth + " vs " + stockIcon.implicitWidth);
+            check(verticalPanel.implicitHeight === stockVerticalIcon.implicitHeight, "vertical widget is not one icon slot: " + verticalPanel.implicitHeight + " vs " + stockVerticalIcon.implicitHeight);
         } else if (step === 2) {
             // The popup is never opened: on a live session that would map a
             // full-screen layer-shell surface. Its content is built eagerly,
@@ -139,6 +115,19 @@ ShellRoot {
 
     Item {
         id: host
+
+        // Reference widths for the icon-only bar widget.
+        Ui.BarIconButton {
+            id: stockIcon
+            bar: horizontalBar
+            text: "\u{f030c}"
+        }
+
+        Ui.BarIconButton {
+            id: stockVerticalIcon
+            bar: verticalBar
+            text: "\u{f030c}"
+        }
     }
 
     QtObject {
